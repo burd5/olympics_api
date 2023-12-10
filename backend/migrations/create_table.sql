@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS olympics(
     id integer,
     name VARCHAR(255),
     sex sex,
-    age VARCHAR(255),
-    height VARCHAR(255),
-    weight VARCHAR(255),
+    age integer,
+    height float,
+    weight float,
     team VARCHAR(255),
     noc VARCHAR(255),
     games VARCHAR(255),
-    year VARCHAR(255),
+    year integer,
     season VARCHAR(255),
     city VARCHAR(255),
     sport VARCHAR(255),
@@ -22,4 +22,5 @@ CREATE TABLE IF NOT EXISTS olympics(
     medal medal_ops
 )
 
--- \copy olympics (id, name, sex, age, height, weight, team, noc, games, year, season, city, sport, event, medal) FROM 'athlete_events.csv' DELIMITER ',' CSV HEADER;
+
+-- \copy olympics (id, name, sex, age, height, weight, team, noc, games, year, season, city, sport, event, medal) FROM 'athlete_events.csv' DELIMITER ',' CSV HEADER NULL 'NA';
