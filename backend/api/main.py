@@ -5,6 +5,7 @@ from .models.country import Country
 from .models.athlete import Athlete
 from .models.event import Event
 from .models.medal import Medal
+from .models.record import Record
 
 def create_app(database,user):
 
@@ -15,8 +16,8 @@ def create_app(database,user):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
         cursor.execute("""select * from olympics;""")
-        olympics = cursor.fetchall()
-        return json.dumps(olympics)
+        records = cursor.fetchall()
+        return json.dumps([Record(record).__dict__ for record in records])
     
     @app.route('/countries')
     def countries():
@@ -38,7 +39,7 @@ def create_app(database,user):
     def athletes():
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select name, sex, age, height, weight, team from olympics;""")
+        cursor.execute("""select distinct id, name, sex, age, height, weight, games, team from olympics;""")
         athletes = cursor.fetchall()
         return json.dumps([Athlete(athlete).__dict__ for athlete in athletes])
     
@@ -49,6 +50,20 @@ def create_app(database,user):
         cursor.execute("""select distinct id, name, sex, age, height, weight, team from olympics where id = %s;""", (id,))
         athletes = cursor.fetchall()
         return json.dumps([Athlete(athlete).__dict__ for athlete in athletes])
+    
+    @app.route('/athletes/<id>/medals')
+    def athlete_medals(id):
+        conn = psycopg2.connect(database=database, user=user)
+        cursor = conn.cursor()
+        cursor.execute("""select id, name, games,
+                          SUM(CASE WHEN medal = 'Gold' THEN 1 else 0 end) as gold_medals,
+                          SUM(CASE WHEN medal = 'Silver' THEN 1 else 0 end) as silver_medals,
+                          SUM(CASE WHEN medal = 'Bronze' THEN 1 else 0 end) as bronze_medals
+                          from olympics where id = %s group by id, name, games;""", (id,))
+        columns = ['id', 'name', 'games', 'gold', 'silver', 'bronze']
+        medals = cursor.fetchall()
+        return json.dumps([dict(zip(columns, medal)) for medal in medals])
+        
     
     @app.route('/events')
     def sports():
@@ -74,6 +89,7 @@ def create_app(database,user):
         cursor.execute("""select medal, games, event, name, team from olympics where medal IS NOT NULL order by games, medal;""")
         medals = cursor.fetchall()
         return json.dumps([Medal(medal).__dict__ for medal in medals])
+    
     
     @app.route('/medals/<country>')
     def medal_count_per_country(country):
