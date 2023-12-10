@@ -5,6 +5,7 @@ from .models.country import Country
 from .models.athlete import Athlete
 from .models.event import Event
 from .models.medal import Medal
+from .models.record import Record
 
 def create_app(database,user):
 
@@ -15,8 +16,8 @@ def create_app(database,user):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
         cursor.execute("""select * from olympics;""")
-        olympics = cursor.fetchall()
-        return json.dumps(olympics)
+        records = cursor.fetchall()
+        return json.dumps([Record(record).__dict__ for record in records])
     
     @app.route('/countries')
     def countries():
