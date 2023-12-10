@@ -1,6 +1,6 @@
 class Country:
     __table__ = 'olympics'
-    columns = ['team', 'noc', 'events']
+    columns = ['team', 'noc', 'events_won']
 
     def __init__(self, values):
         self.__dict__ = dict(zip(self.columns, values))

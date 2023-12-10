@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask
 import json
 import psycopg2
 from .models.country import Country
@@ -30,7 +30,7 @@ def create_app(database,user):
     def country(name):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc, array_agg(distinct event) from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
+        cursor.execute("""select distinct team, noc, array_agg(distinct event) from olympics where team ILIKE '%%'||%s||'%%' and medal is not null group by team, noc order by team asc;""", (name,))
         countries = cursor.fetchall()
         return json.dumps([Country(country).__dict__ for country in countries])
     
