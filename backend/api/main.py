@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+import json
 import psycopg2
 from .models.country import Country
 from .models.athlete import Athlete
@@ -13,9 +14,9 @@ def create_app(database,user):
     def all_records():
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select * from olympics limit 100;""")
+        cursor.execute("""select * from olympics;""")
         olympics = cursor.fetchall()
-        return olympics
+        return json.dumps(olympics)
     
     @app.route('/countries')
     def countries():
@@ -23,15 +24,15 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select distinct team, noc from olympics order by team asc;""")
         countries = cursor.fetchall()
-        return [Country(country).__dict__ for country in countries]
+        return json.dumps([Country(country).__dict__ for country in countries])
     
     @app.route('/countries/<name>')
     def country(name):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc from olympics where team ILIKE '%%'||%s||'%%' order by team asc;""", (name,))
+        cursor.execute("""select distinct team, noc, array_agg(distinct event) from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
         countries = cursor.fetchall()
-        return [Country(country).__dict__ for country in countries]
+        return json.dumps([Country(country).__dict__ for country in countries])
     
     @app.route('/athletes')
     def athletes():
@@ -39,15 +40,15 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select name, sex, age, height, weight, team from olympics;""")
         athletes = cursor.fetchall()
-        return [Athlete(athlete).__dict__ for athlete in athletes]
+        return json.dumps([Athlete(athlete).__dict__ for athlete in athletes])
     
     @app.route('/athletes/<id>')
     def athlete(id):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select id, name, sex, age, height, weight, team from olympics where id = %s;""", (id,))
-        olympics = cursor.fetchall()
-        return olympics
+        cursor.execute("""select distinct id, name, sex, age, height, weight, team from olympics where id = %s;""", (id,))
+        athletes = cursor.fetchall()
+        return json.dumps([Athlete(athlete).__dict__ for athlete in athletes])
     
     @app.route('/events')
     def sports():
@@ -55,7 +56,7 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select distinct event, sport from olympics order by event asc;""")
         events = cursor.fetchall()
-        return [Event(event).__dict__ for event in events]
+        return json.dumps([Event(event).__dict__ for event in events])
     
     @app.route('/events/<sport>')
     def events_per_sport(sport):
@@ -63,7 +64,7 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select distinct event, sport from olympics where sport ILIKE '%%'||%s||'%%'  order by event asc;""", (sport,))
         events = cursor.fetchall()
-        return [Event(event).__dict__ for event in events]
+        return json.dumps([Event(event).__dict__ for event in events])
 
 
     @app.route('/medals')
@@ -72,7 +73,7 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select medal, games, event, name, team from olympics where medal IS NOT NULL order by games, medal;""")
         medals = cursor.fetchall()
-        return [Medal(medal).__dict__ for medal in medals]
+        return json.dumps([Medal(medal).__dict__ for medal in medals])
     
     @app.route('/medals/<country>')
     def medal_count_per_country(country):
@@ -85,6 +86,6 @@ def create_app(database,user):
                           from olympics where team ILIKE '%%'||%s||'%%' group by team;""", (country,))
         countries = cursor.fetchall()
         columns = ['team', 'gold', 'silver', 'bronze']
-        return [dict(zip(columns, country)) for country in countries]
+        return json.dumps([dict(zip(columns, country)) for country in countries])
     
     return app
