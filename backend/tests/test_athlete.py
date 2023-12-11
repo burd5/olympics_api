@@ -5,5 +5,3 @@ def test_create_athlete_instance():
     athlete = Athlete(attrs)
 
     assert isinstance(athlete, Athlete)
-
-
