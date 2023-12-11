@@ -25,24 +25,25 @@ def create_app(database,user):
         cursor = conn.cursor()
         cursor.execute("""select distinct team, noc from olympics order by team asc;""")
         countries = cursor.fetchall()
-        return json.dumps([Country(country, database, user).__dict__ for country in countries])
+        return json.dumps([Country(country).__dict__ for country in countries])
     
     @app.route('/countries/<name>')
     def country(name):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc, array_agg(distinct event) from olympics where team ILIKE '%%'||%s||'%%' and medal is not null group by team, noc order by team asc;""", (name,))
+        cursor.execute("""select distinct team, noc from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
         countries = cursor.fetchall()
-        return json.dumps([Country(country, database, user).__dict__ for country in countries])
+        return json.dumps([Country(country).__dict__ for country in countries])
     
     @app.route('/countries/<name>/athletes')
     def country_athletes(name):
         conn = psycopg2.connect(database=database, user=user)
         cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc, array_agg(distinct event) from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
+        cursor.execute("""select distinct team, noc from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
         countries = cursor.fetchall()
-        return ([Country(country, database, user).find_all_athletes_for_country() for country in countries])
+        return ([Country(country).find_all_athletes_for_country() for country in countries])
     
+    # countries_events = use array_agg(distinct events)
     @app.route('/athletes')
     def athletes():
         conn = psycopg2.connect(database=database, user=user)

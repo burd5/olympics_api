@@ -1,1 +1,1 @@
-from backend import *
+from settings import *

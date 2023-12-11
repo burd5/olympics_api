@@ -1,15 +1,15 @@
 import psycopg2
+from settings import DATABASE, USER
 class Country:
     __table__ = 'olympics'
-    columns = ['team', 'noc', 'events_won']
+    columns = ['team', 'noc']
 
-    def __init__(self, values, database, user):
+    def __init__(self, values):
         self.__dict__ = dict(zip(self.columns, values))
-        self.database = database
-        self.user = user
+       
 
     def find_all_athletes_for_country(self):
-        conn = psycopg2.connect(database=self.database, user=self.user)
+        conn = psycopg2.connect(database=DATABASE, user=USER)
         cursor = conn.cursor()
         statement = """select distinct id, name from olympics where team = %s;"""
         cursor.execute(statement, (self.__dict__['team'],))
