@@ -1,22 +1,24 @@
-import psycopg2
-import json
-
+import backend.api.models as models
 
 class Athlete:
-    __table__ = 'olympics'
-    columns = ['id', 'name', 'sex', 'age', 'height', 'weight', 'team', 'games', 'medal']
+    __table__ = 'athletes'
+    attributes = ['id', 'name', 'sex', 'age', 'height', 'weight', 'team']
 
-    def __init__(self, values):
-        self.__dict__ = dict(zip(self.columns, values))
+    def __init__(self, **kwargs):
+        for key in kwargs.keys():
+            if key not in self.attributes:
+                print(f'{key} not in {self.attributes}')
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
-    # def find_medals_won(self):
-    #     conn = psycopg2.connect(database=DATABASE, user=USER)
-    #     cursor = conn.cursor()
-    #     cursor.execute("""select distinct name, games,
-    #                       SUM(CASE WHEN medal = 'Gold' THEN 1 else 0 end) as gold_medals,
-    #                       SUM(CASE WHEN medal = 'Silver' THEN 1 else 0 end) as silver_medals,
-    #                       SUM(CASE WHEN medal = 'Bronze' THEN 1 else 0 end) as bronze_medals
-    #                       from olympics where name = %s group by name, games;""", (self.__dict__['name'],))
-    #     columns = ['name', 'games', 'gold', 'silver', 'bronze']
-    #     medals = cursor.fetchall()
-    #     return [dict(zip(columns, medal)) for medal in medals][0]
+    def results(self, cursor):
+        cursor.execute("""select * from results where athlete_name = %s;""", (self.__dict__['name'],))
+        records = cursor.fetchall()
+        return models.build_from_records(models.Result, records)
+    
+    def events(self):
+        pass
+
+    @classmethod
+    def names(cls):
+        pass

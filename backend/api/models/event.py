@@ -1,6 +1,12 @@
-class Event:
-    __table__ = 'olympics'
-    columns = ['event', 'sport']
+import backend.api.models as models
 
-    def __init__(self, values):
-        self.__dict__ = dict(zip(self.columns, values))
+class Event:
+    __table__ = 'events'
+    attributes = ['event', 'sport']
+
+    def __init__(self, **kwargs):
+        for key in kwargs.keys():
+            if key not in self.attributes:
+                print(f'{key} not in {self.attributes}')
+        for k, v in kwargs.items():
+            setattr(self, k, v)
