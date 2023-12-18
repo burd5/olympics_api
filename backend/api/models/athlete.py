@@ -1,4 +1,5 @@
 import backend.api.models as models
+import json
 
 class Athlete:
     __table__ = 'athletes'
@@ -11,14 +12,32 @@ class Athlete:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def results(self, cursor):
-        cursor.execute("""select * from results where athlete_name = %s;""", (self.__dict__['name'],))
+    def results(self, cursor) -> list[object]:
+        cursor.execute("""select * from results where athlete_id = %s;""", (self.__dict__['id'],))
         records = cursor.fetchall()
         return models.build_from_records(models.Result, records)
     
-    def events(self):
-        pass
+    def events(self, cursor):
+        cursor.execute("""select e.event, e.sport from results r
+                          join events e on r.event = e.event 
+                          where r.athlete_id = %s;""", (self.__dict__['id'],))
+        records = cursor.fetchall()
+        return models.build_from_records(models.Event, records)
+    
+    @classmethod
+    def find_athlete_by_name(cls, cursor, name):
+        cursor.execute("""select * from athletes where name ILIKE '%%'||%s||'%%';""", (name,))
+        records = cursor.fetchall()
+        return models.build_from_records(models.Athlete, records)
+    
+    @classmethod
+    def find_athlete_by_id(cls, cursor, id):
+        cursor.execute("""select * from athletes where id = %s;""", (id,))
+        record = cursor.fetchone()
+        return models.build_from_record(models.Athlete, record)
 
     @classmethod
-    def names(cls):
-        pass
+    def names(cls, cursor):
+        cursor.execute("""select * from athletes;""")
+        records = cursor.fetchall()
+        return models.build_from_records(models.Athlete, records)

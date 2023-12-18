@@ -12,10 +12,23 @@ class Country:
             setattr(self, k, v)
        
     def athletes(self, cursor):
-        statement = """select * from athletes where team = %s;"""
-        cursor.execute(statement, (self.__dict__['team'],))
+        cursor.execute("""select distinct * from athletes where team = %s;""", (self.__dict__['team'],))
         records = cursor.fetchall()
-        return [models.build_from_record(models.Athlete, record) for record in records]
+        return models.build_from_records(models.Athlete, records)
+    
+    @classmethod
+    def find_country_by_name(cls, cursor, name):
+        cursor.execute("""select * from teams where team = INITCAP(%s)""", (name,))
+        record = cursor.fetchone()
+        return models.build_from_record(models.Country, record)
+    
+    @classmethod
+    def all_names(cls, cursor):
+        cursor.execute("""select * from countries;""")
+        records = cursor.fetchall()
+        return models.build_from_records(models.Country, records)
+    
+
 
 
     

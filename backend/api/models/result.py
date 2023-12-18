@@ -2,7 +2,7 @@ import backend.api.models as models
 
 class Result:
     __table__ = 'results'
-    attributes = ['games', 'team', 'event', 'athlete_name', 'medal']
+    attributes = ['athlete_id', 'team', 'games', 'event', 'medal']
 
     def __init__(self, **kwargs):
         for key in kwargs.keys():

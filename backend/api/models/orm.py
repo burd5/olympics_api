@@ -5,16 +5,16 @@ def build_from_record(Class, record):
     obj.__dict__ = attrs
     return obj
 
-def build_from_records(Class, records):
+def build_from_records(Class, records) -> list[object]:
     return [build_from_record(Class, record) for record in records]
 
-def find_all(Class, cursor):
+def find_all(Class, cursor) -> list[object]:
     sql_str = f"SELECT * FROM {Class.__table__}"
     cursor.execute(sql_str)
     records = cursor.fetchall()
     return [build_from_record(Class, record) for record in records]
 
-def values(obj):
+def values(obj) -> list[str or int]:
     venue_attrs = obj.__dict__
     return [venue_attrs[attr] for attr in obj.attributes if attr in venue_attrs.keys()]
 

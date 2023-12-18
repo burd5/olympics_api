@@ -17,44 +17,45 @@ def create_app(database,user):
     
     @app.route('/countries')
     def countries():
-        conn = psycopg2.connect(database=database, user=user)
-        cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc from olympics order by team asc;""")
-        countries = cursor.fetchall()
-        return json.dumps([build_from_record(Country, country).__dict__ for country in countries])
+        # calls @classmethod names from Athlete to return all matching Athlete instances
+        return json.dumps([country.__dict__ for country in Country.all_names(cursor)])
     
     @app.route('/countries/<name>')
     def country(name):
-        conn = psycopg2.connect(database=database, user=user)
-        cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
-        countries = cursor.fetchall()
-        return json.dumps([build_from_record(Country, country).__dict__ for country in countries])
+        # calls @classmethod names from Country to return all matching Country instances
+        return Country.find_country_by_name(cursor, name).__dict__
     
     @app.route('/countries/<name>/athletes')
     def country_athletes(name):
-        conn = psycopg2.connect(database=database, user=user)
-        cursor = conn.cursor()
-        cursor.execute("""select distinct team, noc from olympics where team ILIKE '%%'||%s||'%%' group by team, noc order by team asc;""", (name,))
-        countries = cursor.fetchall()
-        return json.dumps([build_from_record(Country, country).__dict__ for country in countries])
+        country = Country.find_country_by_name(cursor, name)
+        assert country is not None
+        results = country.athletes(cursor) 
+        return json.dumps([result.__dict__ for result in results])
     
     # countries_events = use array_agg(distinct events)
     @app.route('/athletes')
     def athletes():
-        conn = psycopg2.connect(database=database, user=user)
-        cursor = conn.cursor()
-        cursor.execute("""select distinct id, name, sex, age, height, weight, team from athletes order by id asc;""")
-        athletes = cursor.fetchall()
-        return json.dumps([build_from_record(Athlete, athlete).__dict__ for athlete in athletes])
+        # calls @classmethod names from Athlete to return all matching Athlete instances
+        return json.dumps([athlete.__dict__ for athlete in Athlete.names(cursor)])
     
     @app.route('/athletes/<name>')
     def athlete(name):
-        conn = psycopg2.connect(database=database, user=user)
-        cursor = conn.cursor()
-        cursor.execute("""select distinct * from athletes where name ILIKE '%%'||%s||'%%' order by id asc;""", (name,))
-        athletes = cursor.fetchall()
-        return json.dumps([build_from_record(Athlete, athlete).__dict__ for athlete in athletes])
+        # calls @classmethod find_athlete_by_name from Athlete to return all athletes with similar name
+        return json.dumps([athlete.__dict__ for athlete in Athlete.find_athlete_by_name(cursor, name)])
+    
+    @app.route('/athletes/<id>/results')
+    def athlete_results(id:int) -> list[dict]:
+        athlete = Athlete.find_athlete_by_id(cursor, id)
+        assert athlete is not None
+        results = athlete.results(cursor) 
+        return [result.__dict__ for result in results]
+    
+    @app.route('/athletes/<id>/events')
+    def athlete_events(id:int) -> list[dict]:
+        athlete = Athlete.find_athlete_by_id(cursor, id)
+        assert athlete is not None
+        results = athlete.events(cursor)
+        return [result.__dict__ for result in results]
     
     # @app.route('/athletes/<id>/medals')
     # def athlete_medals(id):
