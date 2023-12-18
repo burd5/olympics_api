@@ -1,6 +1,6 @@
 from backend.api.models import *
 import pytest
-from .test_db_utilities import *
+from backend.api.lib.db_utilities import *
 
 @pytest.fixture
 def build_results():

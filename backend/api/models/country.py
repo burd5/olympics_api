@@ -18,13 +18,13 @@ class Country:
     
     @classmethod
     def find_country_by_name(cls, cursor, name):
-        cursor.execute("""select * from teams where team = INITCAP(%s)""", (name,))
+        cursor.execute("""select * from teams where team = INITCAP(%s);""", (name,))
         record = cursor.fetchone()
         return models.build_from_record(models.Country, record)
     
     @classmethod
     def all_names(cls, cursor):
-        cursor.execute("""select * from countries;""")
+        cursor.execute("""select * from teams;""")
         records = cursor.fetchall()
         return models.build_from_records(models.Country, records)
     

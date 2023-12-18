@@ -41,11 +41,3 @@ CREATE TABLE IF NOT EXISTS results(
     event VARCHAR(255),
     medal medal_ops
 );
-
--- \copy olympics (id, name, sex, age, height, weight, team, noc, games, year, season, city, sport, event, medal) FROM 'athlete_events.csv' DELIMITER ',' CSV HEADER NULL 'NA';
-
--- \copy athletes (id, name, sex, age, height, weight, team) FROM 'athletes.csv' DELIMITER ',' CSV HEADER NULL '';
--- \copy events (sport, event) FROM 'events.csv' DELIMITER ',' CSV HEADER NULL '';
--- \copy games (games, year, season, city) FROM 'games.csv' DELIMITER ',' CSV HEADER NULL '';
--- \copy teams (team, noc) FROM 'teams.csv' DELIMITER ',' CSV HEADER NULL 'NA';
--- \copy results (athlete_id, games, team, event, medal) FROM 'results.csv' DELIMITER ',' CSV HEADER NULL '';

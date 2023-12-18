@@ -1,5 +1,4 @@
 import backend.api.models as models
-import json
 
 class Athlete:
     __table__ = 'athletes'

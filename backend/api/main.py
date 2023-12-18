@@ -3,17 +3,27 @@ import json
 import psycopg2
 from backend.api.models import *
 
-def create_app(database,user):
+def create_app(database,user, password):
 
     app = Flask(__name__)
 
+    app.config.from_mapping(
+        DATABASE = database,
+        DB_USER = user,
+        DB_PASSWORD = password
+    )
+
+    conn = psycopg2.connect(database=database, user=user, password=password)
+    cursor = conn.cursor()
+
+    # Render HTML template for home page 
     # @app.route('/')
     # def all_records():
     #     conn = psycopg2.connect(database=database, user=user)
     #     cursor = conn.cursor()
     #     cursor.execute("""select * from olympics;""")
     #     records = cursor.fetchall()
-    #     return json.dumps([Record(record).__dict__ for record in records])
+    #     return records
     
     @app.route('/countries')
     def countries():
