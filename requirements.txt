@@ -3,3 +3,5 @@ flask
 python-dotenv
 pandas
 streamlit
+sqlalchemy
+altair

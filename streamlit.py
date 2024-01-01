@@ -1,19 +1,34 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 
-# test_df = pd.DataFrame([40, 33, 25], ['gold', 'silver', 'bronze'])
+conn = st.connection("postgresql", type="sql")
 
-athletes = pd.read_csv('backend/data/athletes.csv')
-events = pd.read_csv('backend/data/events.csv')
-st.title("**Olympics Data**")
-col1, col2 = st.columns(2)
-athletes_df = st.dataframe(athletes, height=500, width=1000)
-events_df = st.dataframe(events, height=500, width=1000)
-col1.write(athletes_df)
-col2.write(events_df)
+df = conn.query("""select team, 
+                      SUM(CASE WHEN medal = 'Gold' THEN 1 else 0 end) as gold_medals,
+                      SUM(CASE WHEN medal = 'Silver' THEN 1 else 0 end) as silver_medals,
+                      SUM(CASE WHEN medal = 'Bronze' THEN 1 else 0 end) as bronze_medals,
+                      SUM(CASE WHEN medal is not null then 1 else 0 end) as all_medals
+                      from results 
+                      group by 1
+                      order by all_medals DESC
+                      limit 20;""")
 
-
-# conn = st.connection('olympics', type='psql')
-# china_athletes = conn.query('select * from athletes where team = China;')
-# st.dataframe(china_athletes)
-
+st.write(df)
+scale = alt.Scale(domain=['gold_medals', 'silver_medals', 'bronze_medals'], range=['#FFD700', '#C0C0C0', '#CD7F32'])
+chart = alt.Chart(df).transform_fold(
+  fold=['gold_medals', 'silver_medals', 'bronze_medals'],
+  as_=['column', 'value']
+).mark_bar().encode(
+  x='team:N',
+  y='value:Q',
+  color=alt.Color('column:N', scale=scale),
+  order=alt.Order(
+    'value:Q',
+    sort='descending'
+    )
+).properties(
+    width = 1400,
+    height = 1000
+)
+st.write(chart)
