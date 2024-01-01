@@ -1,3 +1,4 @@
 .env
 olympics_venv/
 __pycache__/
+/.streamlit

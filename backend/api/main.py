@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 import json
 import psycopg2
 from backend.api.models import *
@@ -28,7 +28,7 @@ def create_app(database,user, password):
     @app.route('/countries')
     def countries():
         # calls @classmethod names from Athlete to return all matching Athlete instances
-        return json.dumps([country.__dict__ for country in Country.all_names(cursor)])
+        return jsonify([country.__dict__ for country in Country.all_names(cursor)])
     
     @app.route('/countries/<name>')
     def country(name):
@@ -42,11 +42,17 @@ def create_app(database,user, password):
         results = country.athletes(cursor) 
         return json.dumps([result.__dict__ for result in results])
     
+    @app.route('/countries/<name>/medals')
+    def country_medals(name):
+        country = Country.find_country_by_name(cursor, name)
+        assert country is not None
+        return json.dumps(country.medals(cursor))
+    
     # countries_events = use array_agg(distinct events)
     @app.route('/athletes')
     def athletes():
         # calls @classmethod names from Athlete to return all matching Athlete instances
-        return json.dumps([athlete.__dict__ for athlete in Athlete.names(cursor)])
+        return jsonify([athlete.__dict__ for athlete in Athlete.names(cursor)])
     
     @app.route('/athletes/<name>')
     def athlete(name):
@@ -64,22 +70,21 @@ def create_app(database,user, password):
     def athlete_events(id:int) -> list[dict]:
         athlete = Athlete.find_athlete_by_id(cursor, id)
         assert athlete is not None
-        results = athlete.events(cursor)
-        return [result.__dict__ for result in results]
+        events = athlete.events(cursor)
+        return [event.__dict__ for event in events]
     
-    # @app.route('/athletes/<id>/medals')
-    # def athlete_medals(id):
-    #     conn = psycopg2.connect(database=database, user=user)
-    #     cursor = conn.cursor()
-    #     cursor.execute("""select id, name, games,
-    #                       SUM(CASE WHEN medal = 'Gold' THEN 1 else 0 end) as gold_medals,
-    #                       SUM(CASE WHEN medal = 'Silver' THEN 1 else 0 end) as silver_medals,
-    #                       SUM(CASE WHEN medal = 'Bronze' THEN 1 else 0 end) as bronze_medals
-    #                       from olympics where id = %s group by id, name, games;""", (id,))
-    #     columns = ['id', 'name', 'games', 'gold', 'silver', 'bronze']
-    #     medals = cursor.fetchall()
-    #     return json.dumps([dict(zip(columns, medal)) for medal in medals])
-        
+    @app.route('/athletes/<id>/medals')
+    def athlete_medals(id):
+        athlete = Athlete.find_athlete_by_id(cursor, id)
+        assert athlete is not None
+        return json.dumps(athlete.medals(cursor))
+    
+    @app.route('/athletes/<id>/games')
+    def athlete_games(id):
+        athlete = Athlete.find_athlete_by_id(cursor, id)
+        assert athlete is not None
+        games = athlete.games(cursor)
+        return [game.__dict__ for game in games]
     
     @app.route('/events')
     def sports():
@@ -87,7 +92,7 @@ def create_app(database,user, password):
         cursor = conn.cursor()
         cursor.execute("""select distinct event, sport from olympics order by event asc;""")
         events = cursor.fetchall()
-        return json.dumps([build_from_record(Event, event).__dict__ for event in events])
+        return jsonify([build_from_record(Event, event).__dict__ for event in events])
     
     @app.route('/events/<sport>')
     def events_per_sport(sport):

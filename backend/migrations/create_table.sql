@@ -18,16 +18,19 @@ CREATE TABLE IF NOT EXISTS athletes(
 );
 
 CREATE TABLE IF NOT EXISTS teams(
+    id serial,
     team VARCHAR(255),
     noc VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS events(
+    id serial,
     sport VARCHAR(255),
     event VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS games(
+    id serial,
     games VARCHAR(255),
     year integer,
     season VARCHAR(255),
@@ -35,9 +38,10 @@ CREATE TABLE IF NOT EXISTS games(
 );
 
 CREATE TABLE IF NOT EXISTS results(
+    id serial,
     athlete_id integer,
-    games VARCHAR(255),
     team VARCHAR(255),
+    games VARCHAR(255),
     event VARCHAR(255),
     medal medal_ops
 );

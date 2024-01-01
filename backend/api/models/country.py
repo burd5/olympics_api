@@ -2,7 +2,7 @@ import backend.api.models as models
 
 class Country:
     __table__ = 'teams'
-    attributes = ['team', 'noc']
+    attributes = ['id', 'team', 'noc']
 
     def __init__(self, **kwargs):
         for key in kwargs.keys():
@@ -16,6 +16,17 @@ class Country:
         records = cursor.fetchall()
         return models.build_from_records(models.Athlete, records)
     
+    def medals(self, cursor):
+        cursor.execute("""select team, 
+                      SUM(CASE WHEN medal = 'Gold' THEN 1 else 0 end) as gold_medals,
+                      SUM(CASE WHEN medal = 'Silver' THEN 1 else 0 end) as silver_medals,
+                      SUM(CASE WHEN medal = 'Bronze' THEN 1 else 0 end) as bronze_medals
+                      from results where team = %s group by 1;""", (self.__dict__['team'],))
+        medals = cursor.fetchone()
+        attributes = ['team', 'gold_medals', 'silver_medals', 'bronze_medals']
+        medal_dict = dict(zip(attributes,medals))
+        return medal_dict
+    
     @classmethod
     def find_country_by_name(cls, cursor, name):
         cursor.execute("""select * from teams where team = INITCAP(%s);""", (name,))
@@ -24,7 +35,7 @@ class Country:
     
     @classmethod
     def all_names(cls, cursor):
-        cursor.execute("""select * from teams;""")
+        cursor.execute("""select distinct * from teams;""")
         records = cursor.fetchall()
         return models.build_from_records(models.Country, records)
     
